@@ -1,0 +1,12 @@
+services:
+  neo4j:
+    image: neo4j:latest
+    container_name: neo4j
+    privileged: true
+    volumes:
+      - ./neo/data:/data
+      - ./neo/logs:/logs
+    ports:
+      - "7474:7474"   # HTTP interface
+      - "7687:7687"   # Bolt protocol
+ 

@@ -1,0 +1,42 @@
+[package]
+name = "heimdall"
+version = "0.1.0"
+edition = "2021"
+publish = false
+authors = [
+    "Tj Simons <t.simons88@gmail.com>"
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Core dependencies: runtime, HTTP framework and database client.
+futures = "0.3"
+tokio = { version = "1.44.1", features = ["macros", "rt-multi-thread"] }
+axum = { version = "0.8.3", features = ["tower-log"] }
+
+clap = { version = "4.5.34", features = ["derive"]}
+
+serde = { version = "1.0.219", features = ["derive"] }
+
+# Axum builds on the types in Tower
+tower = "0.5.2"
+tower-http = { version = "0.6.2", features = ["trace"] }
+
+time = "0.3.41"
+openssl = { version = "0.10", features = ["vendored"] }
+uuid = { version = "1.16.0", features = ["serde"] }
+
+# Utility Crates
+anyhow = "1.0.97"
+async-trait = "0.1.88"
+dotenv = "0.15.0"
+env_logger = "0.11.7"
+itertools = "0.14.0"
+log = "0.4.27"
+rand = "0.9.0"
+thiserror = "2.0.12"
+neo4rs = "0.8.0"
+tracing = "0.1.41"
+serde_json = "1.0.140"
+cedar-policy = "4.3.3"

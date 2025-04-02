@@ -1,0 +1,14 @@
+/target
+**/*.rs.bk
+Cargo.lock
+.env
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Docker
+.docker/
+docker-compose.override.yml
+neo/
