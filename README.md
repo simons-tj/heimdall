@@ -18,28 +18,6 @@ Heimdall is a modern access control service built with Rust, using Cedar policie
 
 ## Getting Started
 
-### Using Docker (Recommended)
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/heimdall.git
-cd heimdall
-```
-
-2. Start the services using Docker Compose:
-```bash
-docker compose up --build
-```
-
-This will:
-- Build and start the Heimdall service
-- Start a Neo4j database
-- Set up the necessary networking between services
-- Expose the following ports:
-  - Heimdall API: http://localhost:3000
-  - Neo4j Browser: http://localhost:7474
-  - Neo4j Bolt: bolt://localhost:7687
-
 ### Local Development
 
 1. Clone the repository:
@@ -54,58 +32,38 @@ cp .env.example .env
 # Edit .env with your configuration
 ```
 
-3. Run the development server:
+3. Run the Neo4j database
+
 ```bash
-cargo run
+docker run \
+ --privileged \
+ -p 7474:7474 -p 7687:7687 \
+ --name neo4j-apoc \
+ -e NEO4J_apoc_export_file_enabled=true \
+ -e NEO4J_apoc_import_file_enabled=true \
+ -e NEO4J_apoc_import_file_use__neo4j__config=true \
+ -e NEO4J_PLUGINS='["apoc"]'\
+ -v $HOME/neo4j/data:/data \
+ -v $HOME/neo4j/logs:/logs \
+ -v $HOME/neo4j/conf:/var/lib/neo4j/conf \
+ -v $HOME/neo4j/import:/var/lib/neo4j/import \
+ -v $HOME/neo4j/plugins:/var/lib/neo4j/plugins \
+ neo4j:4.2
 ```
 
-The server will start on `http://localhost:3000`
+4. Run the development server:
+```bash
+cargo run
+# or with cargo watch
+cargo watch -x run
+```
+
+The server will start on `http://localhost:8080`
 
 ## API Endpoints
 
 ### Policies
 
-- `GET /policies` - List all policies
-- `POST /policies` - Create a new policy
-- `DELETE /policies/:id` - Delete a policy
-
-### Example Policy
-
-```cedar
-permit(
-    principal == User::"alice",
-    action == Action::"view",
-    resource == Resource::"document"
-);
-```
-
-## Development
-
-### Running Tests
-
-```bash
-cargo test
-```
-
-### Code Style
-
-This project uses `rustfmt` for code formatting. Run:
-
-```bash
-cargo fmt
-```
-
-### Docker Commands
-
-- Start services: `docker compose up`
-- Start services in detached mode: `docker compose up -d`
-- Stop services: `docker compose down`
-- View logs: `docker compose logs -f`
-- Rebuild services: `docker compose up --build`
-- Access Neo4j browser: http://localhost:7474
-  - Username: neo4j
-  - Password: development_password
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details. 
+- `GET /relationships` - Given an entitiy, list the related entities with attached properties
+- `POST /relationships` - Relate 2 things together with the provided relation and payload
+- `DELETE /relationships` - Delete a relationship

@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::db::create_relationship::*;
-use crate::db::get_relationships::*;
-use crate::db::QueryNode;
+use crate::db::{create_relationship::*, get_relationships::*, QueryNode};
 use crate::http::{AppState, Error, Result};
 use axum::extract::State;
 use axum::response::IntoResponse;
@@ -20,8 +18,9 @@ pub struct CreateRelationshipRequest {
 
 impl CreateRelationshipRequest {
     fn to_query_nodes(&self) -> CreateConnectionDetails {
-        let from_node = QueryNode::new(self.from.clone(), self.properties.clone());
-        let to_node = QueryNode::new(self.to.clone(), self.properties.clone());
+        let from_node = QueryNode::fromRequest(&self.from);
+        let to_node = QueryNode::fromRequest(&self.to);
+
         CreateConnectionDetails {
             from: from_node,
             to: to_node,
@@ -68,47 +67,28 @@ pub struct GetRelationshipRequest {
 
 impl GetRelationshipRequest {
     fn to_query_nodes(&self) -> GetConnectionDetails {
-        let from_node = QueryNode::new(self.from.clone(), HashMap::new());
+        let from_node = QueryNode::fromRequest(&self.from);
         GetConnectionDetails {
             from: from_node,
-            to: to_node,
             relationship: self.relationship.clone(),
-            properties: HashMap::new(),
         }
     }
 }
 
-#[derive(serde::Serialize)]
-pub struct GetRelationshipResponse {
-    pub status: String,
-    pub message: String,
-}
-impl IntoResponse for GetRelationshipResponse {
+impl IntoResponse for RelationshipDetails {
     fn into_response(self) -> axum::response::Response {
-        let body = json!({
-            "status": self.status,
-            "message": self.message,
-            payload: {
-                "from": self.from,
-                "to": self.to,
-                "relationship": self.relationship,
-                "properties": self.properties,
-            }
-        });
+        let body = json!(self);
         let body = serde_json::to_string(&body).unwrap();
         (axum::http::StatusCode::OK, body).into_response()
     }
 }
 
-pub async fn get_relationships(
+pub async fn get_relationships_handler(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<GetRelationshipRequest>,
-) -> Result<RelationshipResponse, Error> {
+) -> Result<Json<RelationshipDetails>, Error> {
     let connection = payload.to_query_nodes();
-    create_graph_relationship(&state.graph, connection).await;
+    let result = get_relationships(&state.graph, connection).await?;
 
-    Ok(RelationshipResponse {
-        status: "success".to_string(),
-        message: "Relationship created successfully".to_string(),
-    })
+    Ok(Json(result))
 }

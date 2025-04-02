@@ -5,7 +5,7 @@ use neo4rs::Graph;
 
 mod handlers;
 use handlers::health::health;
-use handlers::relationship::create_relationship;
+use handlers::relationship::{create_relationship, get_relationships_handler};
 
 use crate::config::Config;
 use axum::{
@@ -28,7 +28,10 @@ pub async fn serve(config: Config, graph: Graph) -> anyhow::Result<()> {
     let state = Arc::new(AppState { config, graph });
     let app = Router::new()
         .route("/health", get(health))
-        .route("/relate", post(create_relationship))
+        .route(
+            "/relationships",
+            post(create_relationship).get(get_relationships_handler),
+        )
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http()))
         .with_state(state);
 
